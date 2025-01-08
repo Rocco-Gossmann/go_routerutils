@@ -27,7 +27,7 @@ For an Example see the [`RouteDefinitionList`](#RouteDefinitionList) Type.
 ### `StatCatResponder`
 
 A ServeMux-HandlerFunc, that combines multiple static files into one response.
-This function is meant to reduce the amout of calls, the client
+This function is meant to reduce the amount of calls, that the client
 needs to make for calling multiple static Javascript or CSS files.
 
 ```go
@@ -217,6 +217,78 @@ func handleRoute(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
+---
+
+### ReadInt64FromPathValue
+```go
+func ReadInt64FromPathValue(r *http.Request, muxPatternPlaceholder string, readInto *int64) error
+```
+Takes a PathValue like `{id}` reads its value from the Request, converts it to `Int64` and writes to that to `readInto`
+
+The function returns an error, if the `muxPatternPlaceholder` did not contain any value or if the value could not be converted into
+the required type.
+
+you can use the [`ErrIsEmptyURLParamErr(err)`](#ErrIsEmptyURLParamErr) function to check if error had todo with the value being empty.
+
+Example:
+```go
+// route "GET /items/{id}/{detailId}"
+func handleRoute(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	var itemId, detailId int64
+
+	if go_routerutils.RespondWithError(w, 404, go_routerutils.ReadInt64FromPathValue(r, "id", &itemId)) {
+		return
+	}
+
+	err = go_routerutils.ReadInt64FromPathValue(r, "id", &detailId);
+	if go_routerutils.ErrIsEmptyURLParamErr(err) {
+		// TODO: read all details of itemId
+
+	} else if err == nil {
+		// TODO: read specific detaildId
+
+	} else {
+		go_routerutils.RespondWithCode(w, 404, "no such detailId");
+
+	}
+
+}
+```
+
+Variants:
+- `ReadInt32FromPathValue`
+- `ReadInt16FromPathValue`
+- `ReadInt8FromPathValue`
+- `ReadUInt64FromPathValue`
+- `ReadUInt32FromPathValue`
+- `ReadUInt16FromPathValue`
+- `ReadUInt8FromPathValue`
+
+---
+
+### ErrIsEmptyURLParamErr
+```go
+func ErrIsEmptyURLParamErr(err error) bool
+```
+Checks if an error returned by one of the [`Read...FromPathValue`](#readint64frompathvalue) functions.
+was returned because there was no value passed into that variable.
+
+Example:
+```go
+err = go_routerutils.ReadInt64FromPathValue(r, "id", &detailId);
+if go_routerutils.ErrIsEmptyURLParamErr(err) {
+	// TODO: read all details of itemId
+
+} else if err == nil {
+	// TODO: read specific detaildId
+
+} else {
+	// TODO: do something with err
+
+}
+```
 
 ---
 
